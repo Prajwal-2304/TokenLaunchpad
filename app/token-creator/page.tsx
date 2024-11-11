@@ -13,7 +13,6 @@ export default function Component() {
   return (
     <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white p-8 transition-colors duration-200">
       <div className="max-w-3xl mx-auto space-y-8">
-        {/* Header */}
         <div className="text-center space-y-2">
           <div className="flex justify-end mb-4">
           </div>
@@ -23,9 +22,7 @@ export default function Component() {
           </p>
         </div>
 
-        {/* Form */}
         <form className="space-y-6">
-          {/* Name and Symbol */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>
@@ -47,7 +44,6 @@ export default function Component() {
             </div>
           </div>
 
-          {/* Decimals and Supply */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>
@@ -71,7 +67,6 @@ export default function Component() {
             </div>
           </div>
 
-          {/* Image Upload */}
           <div className="space-y-2">
             <Label>
               Image <span className="text-red-500">*</span>
@@ -85,7 +80,6 @@ export default function Component() {
             <p className="text-xs text-gray-500 dark:text-gray-400">Most meme coin use a squared 1000x1000 logo</p>
           </div>
 
-          {/* Description */}
           <div className="space-y-2">
             <Label>
               Description <span className="text-red-500">*</span>
@@ -96,13 +90,11 @@ export default function Component() {
             />
           </div>
 
-          {/* Social Links Toggle */}
           <div className="flex items-center gap-2">
             <Label>Add Social Links</Label>
             <Switch />
           </div>
 
-          {/* Social Links */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Website</Label>
@@ -134,7 +126,6 @@ export default function Component() {
             </div>
           </div>
 
-          {/* Revoke Authorities Section */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Revoke Authorities</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -143,7 +134,6 @@ export default function Component() {
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Update Authority */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <div>
@@ -155,7 +145,6 @@ export default function Component() {
                 <div className="text-sm text-gray-500 dark:text-gray-400">(+0.1 SOL)</div>
               </div>
 
-              {/* Freeze Authority */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <div>
@@ -167,7 +156,6 @@ export default function Component() {
                 <div className="text-sm text-gray-500 dark:text-gray-400">(+0.1 SOL)</div>
               </div>
 
-              {/* Mint Authority */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <div>
@@ -180,8 +168,7 @@ export default function Component() {
               </div>
             </div>
           </div>
-
-          {/* Create Token Button */}
+          
           <div className="space-y-4">
             <Button className="w-full bg-teal-600 hover:bg-teal-700 text-white py-6">Create Token</Button>
             <div className="text-center text-sm text-gray-600 dark:text-gray-400">

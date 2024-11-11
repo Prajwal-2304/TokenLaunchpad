@@ -15,7 +15,7 @@ export default function Providers({ children }: {
             enableSystem
             disableTransitionOnChange
           >
-            <ConnectionProvider endpoint={"https://api.devnet.solana.com"}>
+            <ConnectionProvider endpoint={process.env.SOLANA_DEVNET_RPC_URL || "https://api.devnet.solana.com"}>
                 <WalletProvider wallets={[]} autoConnect>
                     <WalletModalProvider>
                     {children}
