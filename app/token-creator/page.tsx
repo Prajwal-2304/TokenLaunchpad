@@ -1,181 +1,287 @@
 "use client"
 
 import * as React from "react"
+import { z } from "zod"
 import { Upload } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import Image from 'next/image';
 
-export default function Component() {
+const formSchema = z.object({
+  name: z.string().min(1, {
+    message: "Name cannot be empty.",
+  }),
+  symbol: z.string().min(1, {
+    message: "Symbol cannot be empty.",
+  }),
+  decimals: z.string().refine((value) => {
+    const num = Number(value);
+    return Number.isInteger(num) && num >= 0 && num <= 9;
+  }, {
+    message: "Decimals must be an integer between 0 and 9.",
+  }),
+  initSupply: z.string().refine((value) => {
+    const num = Number(value);
+    return Number.isInteger(num) && num >= 1;
+  }, {
+    message: "Initial supply of tokens should be at least 1.",
+  }),
+  description: z.string().min(10, { 
+    message: "Description must be at least 10 characters long." 
+  }).max(500, { 
+    message: "Description cannot exceed 500 characters." 
+  }),
+  img: z
+    .instanceof(File)
+    .refine((file) => file !== undefined, {
+      message: "Image is required.",
+    })
+    .refine((file) => file?.size > 0 && ['image/jpeg', 'image/png', 'image/gif'].includes(file?.type), {
+      message: "A valid image file (JPEG, PNG, or GIF) is required.",
+    }),
+  //TODO: validate them as url
+  website: z.string().optional(),
+  twitter: z.string().optional(),
+  telegram: z.string().optional(),
+  discord: z.string().optional(),
+  revokeUpdate: z.boolean().default(false),
+  revokeFreeze: z.boolean().default(false),
+  revokeMint: z.boolean().default(false),
+});
+
+export default function CreateToken() {
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      symbol: "",
+      decimals: "6",
+      initSupply: "1",
+      description: "",
+      website: "",    
+      twitter: "",    
+      telegram: "",   
+      discord: "",
+      revokeUpdate: false,
+      revokeFreeze: false,
+      revokeMint: false,
+    },
+  });
+
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    console.log(values)
+  }
 
   return (
     <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white p-8 transition-colors duration-200">
       <div className="max-w-3xl mx-auto space-y-8">
         <div className="text-center space-y-2">
-          <div className="flex justify-end mb-4">
-          </div>
           <h1 className="text-4xl font-bold">Solana Token Creator</h1>
           <p className="text-gray-600 dark:text-gray-400">
             Easily Create your own Solana SPL Token in just 7+1 steps without Coding.
           </p>
         </div>
-
-        <form className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>
-                Name <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                placeholder="Put the name of your Token"
-                className="bg-gray-100 dark:bg-gray-900 border-gray-300 dark:border-gray-800"
+        
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name <span className="text-red-500">*</span></FormLabel>
+                    <FormControl>
+                      <Input placeholder="Put the name of your Token" {...field} className="bg-gray-100 dark:bg-gray-900 border-gray-300 dark:border-gray-800" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="symbol"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Symbol <span className="text-red-500">*</span></FormLabel>
+                    <FormControl>
+                      <Input placeholder="Put the symbol of your Token" {...field} className="bg-gray-100 dark:bg-gray-900 border-gray-300 dark:border-gray-800" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             </div>
-            <div className="space-y-2">
-              <Label>
-                Symbol <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                placeholder="Put the symbol of your Token"
-                className="bg-gray-100 dark:bg-gray-900 border-gray-300 dark:border-gray-800"
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="decimals"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Decimals <span className="text-red-500">*</span></FormLabel>
+                    <FormControl>
+                      <Input type="number" {...field} className="bg-gray-100 dark:bg-gray-900 border-gray-300 dark:border-gray-800" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="initSupply"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Supply <span className="text-red-500">*</span></FormLabel>
+                    <FormControl>
+                      <Input type="number" {...field} min={1} className="bg-gray-100 dark:bg-gray-900 border-gray-300 dark:border-gray-800" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>
-                Decimals <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                type="number"
-                defaultValue="6"
-                className="bg-gray-100 dark:bg-gray-900 border-gray-300 dark:border-gray-800"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>
-                Supply <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                type="number"
-                defaultValue="1"
-                className="bg-gray-100 dark:bg-gray-900 border-gray-300 dark:border-gray-800"
-              />
-            </div>
-          </div>
+            <FormField
+            control={form.control}
+            name="img"
+            render={({ field: { onChange, value, ...rest } }) => (
+              <FormItem>
+                <FormLabel>Image <span className="text-red-500">*</span></FormLabel>
+                <FormControl>
+                  <div className="border-2 border-dashed border-gray-300 dark:border-gray-800 rounded-lg p-8">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          onChange(file);
+                        }
+                      }}
+                      {...rest}
+                      className="hidden"
+                      id="image-upload"
+                    />
+                    <label htmlFor="image-upload" className="flex flex-col items-center justify-center gap-2 cursor-pointer">
+                      <Upload className="h-8 w-8 text-gray-500 dark:text-gray-400" />
+                      <span className="text-gray-500 dark:text-gray-400">Upload Image</span>
+                    </label>
+                  </div>
+                </FormControl>
+                <FormDescription>Most meme coins use a squared 1000x1000 logo</FormDescription>
+                <FormMessage />
+                
+                {value && (
+                  <div className="mt-4 relative flex justify-center items-center" style={{ height: '100%', width: '100%' }}>
+                    <div className="relative" style={{ width: '100%', height: 'auto', maxWidth: '300px' }}>
+                      <Image
+                        src={URL.createObjectURL(value)}
+                        alt="Uploaded preview"
+                        width={300}
+                        height={300}
+                        className="w-full h-auto rounded"
+                      />
+                    </div>
+                  </div>
+                )}
+              </FormItem>
+            )}
+          />
 
-          <div className="space-y-2">
-            <Label>
-              Image <span className="text-red-500">*</span>
-            </Label>
-            <div className="border-2 border-dashed border-gray-300 dark:border-gray-800 rounded-lg p-8 transition-colors hover:border-gray-400 dark:hover:border-gray-700">
-              <div className="flex flex-col items-center justify-center gap-2">
-                <Upload className="h-8 w-8 text-gray-500 dark:text-gray-400" />
-                <span className="text-gray-500 dark:text-gray-400">Upload Image</span>
-              </div>
-            </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Most meme coin use a squared 1000x1000 logo</p>
-          </div>
 
-          <div className="space-y-2">
-            <Label>
-              Description <span className="text-red-500">*</span>
-            </Label>
-            <Textarea
-              placeholder="Put the description of your Token"
-              className="bg-gray-100 dark:bg-gray-900 border-gray-300 dark:border-gray-800 min-h-[100px]"
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description <span className="text-red-500">*</span></FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Put the description of your Token"
+                      className="bg-gray-100 dark:bg-gray-900 border-gray-300 dark:border-gray-800 min-h-[100px]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="flex items-center gap-2">
-            <Label>Add Social Links</Label>
-            <Switch />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Website</Label>
-              <Input
-                placeholder="Put your website"
-                className="bg-gray-100 dark:bg-gray-900 border-gray-300 dark:border-gray-800"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {["website", "twitter", "telegram", "discord"].map((social) => (
+                <FormField
+                  key={social}
+                  control={form.control}
+                  name={social as "website" | "twitter" | "telegram" | "discord"}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="capitalize">{social}</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder={`Enter your ${social}`}
+                          {...field}
+                          className="bg-gray-100 dark:bg-gray-900 border-gray-300 dark:border-gray-800"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              ))}
             </div>
-            <div className="space-y-2">
-              <Label>Twitter</Label>
-              <Input
-                placeholder="Put your twitter"
-                className="bg-gray-100 dark:bg-gray-900 border-gray-300 dark:border-gray-800"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Telegram</Label>
-              <Input
-                placeholder="Put your telegram"
-                className="bg-gray-100 dark:bg-gray-900 border-gray-300 dark:border-gray-800"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Discord</Label>
-              <Input
-                placeholder="Put your discord"
-                className="bg-gray-100 dark:bg-gray-900 border-gray-300 dark:border-gray-800"
-              />
-            </div>
-          </div>
 
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Revoke Authorities</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Solana Token have 3 authorities: Freeze Authority, Mint Authority and Update Authority. Revoke them to attract
-              more investors.
-            </p>
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Revoke Authorities</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Solana Token have 3 authorities: Freeze Authority, Mint Authority and Update Authority. Revoke them to attract
+                more investors.
+              </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h4 className="font-medium">Revoke Update (Immutable)</h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Update Authority allows you to update token metadata</p>
-                  </div>
-                  <Switch />
-                </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">(+0.1 SOL)</div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h4 className="font-medium">Revoke Freeze</h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Freeze Authority allows you to freeze token accounts</p>
-                  </div>
-                  <Switch />
-                </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">(+0.1 SOL)</div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h4 className="font-medium">Revoke Mint</h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Mint Authority allows you to mint more supply</p>
-                  </div>
-                  <Switch />
-                </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">(+0.1 SOL)</div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {[
+                  { name: "revokeUpdate", label: "Revoke Update (Immutable)", description: "Update Authority allows you to update token metadata" },
+                  { name: "revokeFreeze", label: "Revoke Freeze", description: "Freeze Authority allows you to freeze token accounts" },
+                  { name: "revokeMint", label: "Revoke Mint", description: "Mint Authority allows you to mint more supply" },
+                ].map((authority) => (
+                  <FormField
+                    key={authority.name}
+                    control={form.control}
+                    name={authority.name as "revokeUpdate" | "revokeFreeze" | "revokeMint"}
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">{authority.label}</FormLabel>
+                          <FormDescription>
+                            {authority.description}
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                ))}
               </div>
             </div>
-          </div>
-          
-          <div className="space-y-4">
-            <Button className="w-full bg-teal-600 hover:bg-teal-700 text-white py-6">Create Token</Button>
-            <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-              Total Fees: <span className="text-teal-500 dark:text-teal-400">0.10 SOL</span>
+            
+            <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700 text-white py-6">Create Token</Button>
+            <div className="space-y-4">
+              <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+                Total Fees: <span className="text-teal-500 dark:text-teal-400">0.10 SOL</span>
+              </div>
             </div>
-          </div>
-        </form>
+          </form>
+        </Form>
       </div>
     </div>
   )
