@@ -12,6 +12,13 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import Image from 'next/image';
 import { formSchema } from "@/lib/formSchema"
+import { useWallet } from "@solana/wallet-adapter-react"
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { clusterApiUrl, Connection, PublicKey } from "@solana/web3.js"
+import { createTokenMint} from "@/actions/createMintAcc"
+import { createAccount } from "@/actions/createTokenAcc"
+import { mint } from "@/actions/mint"
 
 export default function CreateToken() {
   const form = useForm<z.infer<typeof formSchema>>({
@@ -31,9 +38,24 @@ export default function CreateToken() {
       revokeMint: false,
     },
   });
-
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values)
+  const {wallet,connected}=useWallet()
+  const router=useRouter();
+  const connection=new Connection(clusterApiUrl("devnet"))
+  useEffect(()=>{
+    if(!connected){
+      router.replace('/')
+    }
+  })
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    if(wallet){
+      const Wallet=wallet.adapter;
+      const mint=await createTokenMint({connection,decimals:parseInt(values.decimals),wallet:Wallet})
+      console.log(`Mint address is at ${mint}`)
+      if(mint){
+        const acc=await createAccount({connection,wallet:Wallet,mint:mint})
+        console.log(`The token can be found at address ${acc}`)
+      }
+    }
   }
 
   return (
