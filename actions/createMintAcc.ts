@@ -1,7 +1,7 @@
 
 import { Connection, Keypair, PublicKey, SystemProgram, Transaction  } from "@solana/web3.js"
 import { WalletContextState } from "@solana/wallet-adapter-react"
-import { createInitializeMetadataPointerInstruction, createInitializeMintInstruction, ExtensionType, getMintLen, LENGTH_SIZE, TOKEN_2022_PROGRAM_ID, TYPE_SIZE } from "@solana/spl-token"
+import { createAssociatedTokenAccountInstruction, createInitializeMetadataPointerInstruction, createInitializeMintInstruction, createMintToInstruction, ExtensionType, getAssociatedTokenAddressSync, getMintLen, LENGTH_SIZE, TOKEN_2022_PROGRAM_ID, TYPE_SIZE } from "@solana/spl-token"
 import { createInitializeInstruction, pack } from '@solana/spl-token-metadata';
 
 interface Metadata {
@@ -33,6 +33,14 @@ export async function createTokenMint({ connection, decimals, wallet, tokenName,
   const metadataLen = TYPE_SIZE + LENGTH_SIZE + pack(metadata).length;
 
   const lamports = await connection.getMinimumBalanceForRentExemption(mintLen + metadataLen);
+
+
+  const associatedToken = getAssociatedTokenAddressSync(
+    mintKeypair.publicKey,
+    wallet.publicKey!,
+    false,
+    TOKEN_2022_PROGRAM_ID,
+  );
   
   const transaction = new Transaction().add(
     SystemProgram.createAccount({
@@ -54,6 +62,14 @@ export async function createTokenMint({ connection, decimals, wallet, tokenName,
         mintAuthority: wallet.publicKey!,
         updateAuthority: wallet.publicKey!,
     }),
+    createAssociatedTokenAccountInstruction(
+      wallet.publicKey!,
+      associatedToken,
+      wallet.publicKey!,
+      mintKeypair.publicKey,
+      TOKEN_2022_PROGRAM_ID,
+    ),
+    createMintToInstruction(mintKeypair.publicKey, associatedToken, wallet.publicKey!, 100 * 1000000, [], TOKEN_2022_PROGRAM_ID)
   )
 
   transaction.feePayer = wallet.publicKey!
@@ -61,6 +77,7 @@ export async function createTokenMint({ connection, decimals, wallet, tokenName,
   transaction.partialSign(mintKeypair)
 
   await wallet.sendTransaction(transaction, connection)
-  console.log(`Token mint created at ${mintKeypair.publicKey.toBase58()}`);
+  console.log(`Token mint created at ${mintKeypair.publicKey.toBase58()}`)
+  console.log("ATA: ", associatedToken.toBase58())
   return mintKeypair.publicKey.toBase58()
 }
