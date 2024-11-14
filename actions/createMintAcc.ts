@@ -1,31 +1,38 @@
-import { clusterApiUrl, Connection } from "@solana/web3.js"
-import * as token from "@solana/spl-token"
-import * as web3 from "@solana/web3.js"
-import { useWallet, Wallet } from "@solana/wallet-adapter-react"
-import { Adapter, WalletAdapter } from "@solana/wallet-adapter-base"
-import { sign } from "crypto"
 
-export async function createTokenMint({connection,decimals,wallet}:{connection:web3.Connection,decimals:number,wallet:WalletAdapter}){
-const lamports=await token.getMinimumBalanceForRentExemptMint(connection)
-const programId=token.TOKEN_PROGRAM_ID;
-const keypair=web3.Keypair.generate()
-const transaction=new web3.Transaction().add(
-    web3.SystemProgram.createAccount({
-        fromPubkey:wallet.publicKey!,
-        newAccountPubkey:keypair.publicKey,
-        space:token.MINT_SIZE,
-        lamports,
-        programId,
-    }),token.createInitializeMintInstruction(
-        keypair.publicKey,
-        decimals,
-        wallet.publicKey!,
-        wallet.publicKey,
-        programId
+import { Connection, Keypair, SystemProgram, Transaction  } from "@solana/web3.js"
+import { WalletContextState } from "@solana/wallet-adapter-react"
+import { createInitializeMint2Instruction, getMinimumBalanceForRentExemptMint, MINT_SIZE, TOKEN_PROGRAM_ID } from "@solana/spl-token"
+
+export async function createTokenMint({ connection, decimals, wallet }: { 
+  connection: Connection, 
+  decimals: number, 
+  wallet: WalletContextState 
+}) {
+  const mintKeypair = Keypair.generate()
+  const lamports = await getMinimumBalanceForRentExemptMint(connection)
+  
+  const transaction = new Transaction().add(
+    SystemProgram.createAccount({
+      fromPubkey: wallet.publicKey!,
+      newAccountPubkey: mintKeypair.publicKey,
+      space: MINT_SIZE,
+      lamports,
+      programId: TOKEN_PROGRAM_ID,
+    }),
+    createInitializeMint2Instruction(
+      mintKeypair.publicKey,
+      decimals,
+      wallet.publicKey!,
+      wallet.publicKey,
+      TOKEN_PROGRAM_ID
     )
-)
-const signature=await wallet.sendTransaction(transaction,connection,{signers:[keypair]})
-const confirmation=await connection.confirmTransaction(signature,'confirmed')
-await token.getMint(connection,keypair.publicKey)
-return keypair.publicKey;
+  )
+
+  transaction.feePayer = wallet.publicKey!
+  transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
+  transaction.partialSign(mintKeypair)
+
+  await wallet.sendTransaction(transaction, connection)
+  console.log(`Token mint created at ${mintKeypair.publicKey.toBase58()}`);
+  return mintKeypair.publicKey.toBase58()
 }

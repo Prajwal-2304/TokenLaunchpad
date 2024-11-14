@@ -12,13 +12,11 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import Image from 'next/image';
 import { formSchema } from "@/lib/formSchema"
-import { useWallet } from "@solana/wallet-adapter-react"
+import { useConnection, useWallet } from "@solana/wallet-adapter-react"
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { clusterApiUrl, Connection, PublicKey } from "@solana/web3.js"
-import { createTokenMint} from "@/actions/createMintAcc"
+import { createTokenMint } from "@/actions/createMintAcc"
 import { createAccount } from "@/actions/createTokenAcc"
-import { mint } from "@/actions/mint"
 
 export default function CreateToken() {
   const form = useForm<z.infer<typeof formSchema>>({
@@ -29,32 +27,35 @@ export default function CreateToken() {
       decimals: "6",
       initSupply: "1",
       description: "",
-      website: "",    
-      twitter: "",    
-      telegram: "",   
+      website: "",
+      twitter: "",
+      telegram: "",
       discord: "",
       revokeUpdate: false,
       revokeFreeze: false,
       revokeMint: false,
     },
   });
-  const {wallet,connected}=useWallet()
-  const router=useRouter();
-  const connection=new Connection(clusterApiUrl("devnet"))
-  useEffect(()=>{
-    if(!connected){
+
+  const wallet = useWallet()
+  const { connected } = useWallet()
+  const router = useRouter();
+  const { connection } = useConnection()
+
+  useEffect(() => {
+    if (!connected || !wallet) {
       router.replace('/')
     }
   })
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    if(wallet){
-      const Wallet=wallet.adapter;
-      const mint=await createTokenMint({connection,decimals:parseInt(values.decimals),wallet:Wallet})
+    if (wallet) {
+      const mint = await createTokenMint({ connection, decimals: parseInt(values.decimals), wallet })
       console.log(`Mint address is at ${mint}`)
-      if(mint){
-        const acc=await createAccount({connection,wallet:Wallet,mint:mint})
-        console.log(`The token can be found at address ${acc}`)
-      }
+      // if(mint){
+      //   const acc=await createAccount({connection,wallet:Wallet,mint:mint})
+      //   console.log(`The token can be found at address ${acc}`)
+      // }
     }
   }
 
@@ -67,7 +68,7 @@ export default function CreateToken() {
             Easily Create your own Solana SPL Token in just 7+1 steps without Coding.
           </p>
         </div>
-        
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -129,51 +130,51 @@ export default function CreateToken() {
             </div>
 
             <FormField
-            control={form.control}
-            name="img"
-            render={({ field: { onChange, value, ...rest } }) => (
-              <FormItem>
-                <FormLabel>Image <span className="text-red-500">*</span></FormLabel>
-                <FormControl>
-                  <div className="border-2 border-dashed border-gray-300 dark:border-gray-800 rounded-lg p-8">
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          onChange(file);
-                        }
-                      }}
-                      {...rest}
-                      className="hidden"
-                      id="image-upload"
-                    />
-                    <label htmlFor="image-upload" className="flex flex-col items-center justify-center gap-2 cursor-pointer">
-                      <Upload className="h-8 w-8 text-gray-500 dark:text-gray-400" />
-                      <span className="text-gray-500 dark:text-gray-400">Upload Image</span>
-                    </label>
-                  </div>
-                </FormControl>
-                <FormDescription>Most meme coins use a squared 1000x1000 logo</FormDescription>
-                <FormMessage />
-                
-                {value && (
-                  <div className="mt-4 relative flex justify-center items-center" style={{ height: '100%', width: '100%' }}>
-                    <div className="relative" style={{ width: '100%', height: 'auto', maxWidth: '300px' }}>
-                      <Image
-                        src={URL.createObjectURL(value)}
-                        alt="Uploaded preview"
-                        width={300}
-                        height={300}
-                        className="w-full h-auto rounded"
+              control={form.control}
+              name="img"
+              render={({ field: { onChange, value, ...rest } }) => (
+                <FormItem>
+                  <FormLabel>Image <span className="text-red-500">*</span></FormLabel>
+                  <FormControl>
+                    <div className="border-2 border-dashed border-gray-300 dark:border-gray-800 rounded-lg p-8">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            onChange(file);
+                          }
+                        }}
+                        {...rest}
+                        className="hidden"
+                        id="image-upload"
                       />
+                      <label htmlFor="image-upload" className="flex flex-col items-center justify-center gap-2 cursor-pointer">
+                        <Upload className="h-8 w-8 text-gray-500 dark:text-gray-400" />
+                        <span className="text-gray-500 dark:text-gray-400">Upload Image</span>
+                      </label>
                     </div>
-                  </div>
-                )}
-              </FormItem>
-            )}
-          />
+                  </FormControl>
+                  <FormDescription>Most meme coins use a squared 1000x1000 logo</FormDescription>
+                  <FormMessage />
+
+                  {value && (
+                    <div className="mt-4 relative flex justify-center items-center" style={{ height: '100%', width: '100%' }}>
+                      <div className="relative" style={{ width: '100%', height: 'auto', maxWidth: '300px' }}>
+                        <Image
+                          src={URL.createObjectURL(value)}
+                          alt="Uploaded preview"
+                          width={300}
+                          height={300}
+                          className="w-full h-auto rounded"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </FormItem>
+              )}
+            />
 
 
             <FormField
@@ -254,7 +255,7 @@ export default function CreateToken() {
                 ))}
               </div>
             </div>
-            
+
             <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700 text-white py-6">Create Token</Button>
             <div className="space-y-4">
               <div className="text-center text-sm text-gray-600 dark:text-gray-400">
