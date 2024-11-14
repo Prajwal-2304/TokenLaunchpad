@@ -1,31 +1,59 @@
 
-import { Connection, Keypair, SystemProgram, Transaction  } from "@solana/web3.js"
+import { Connection, Keypair, PublicKey, SystemProgram, Transaction  } from "@solana/web3.js"
 import { WalletContextState } from "@solana/wallet-adapter-react"
-import { createInitializeMint2Instruction, getMinimumBalanceForRentExemptMint, MINT_SIZE, TOKEN_PROGRAM_ID } from "@solana/spl-token"
+import { createInitializeMetadataPointerInstruction, createInitializeMintInstruction, ExtensionType, getMintLen, LENGTH_SIZE, TOKEN_2022_PROGRAM_ID, TYPE_SIZE } from "@solana/spl-token"
+import { createInitializeInstruction, pack } from '@solana/spl-token-metadata';
 
-export async function createTokenMint({ connection, decimals, wallet }: { 
+interface Metadata {
+  mint: PublicKey,
+  name: string,
+  symbol: string,
+  uri: string,
+  additionalMetadata: []
+}
+
+export async function createTokenMint({ connection, decimals, wallet, tokenName, tokenSymbol }: { 
   connection: Connection, 
   decimals: number, 
-  wallet: WalletContextState 
+  wallet: WalletContextState,
+  tokenName: string,
+  tokenSymbol: string
 }) {
   const mintKeypair = Keypair.generate()
-  const lamports = await getMinimumBalanceForRentExemptMint(connection)
+
+  const metadata: Metadata = {
+    mint: mintKeypair.publicKey,
+    name: tokenName,
+    symbol: tokenSymbol,
+    uri: "",
+    additionalMetadata: []
+  }
+
+  const mintLen = getMintLen([ExtensionType.MetadataPointer])
+  const metadataLen = TYPE_SIZE + LENGTH_SIZE + pack(metadata).length;
+
+  const lamports = await connection.getMinimumBalanceForRentExemption(mintLen + metadataLen);
   
   const transaction = new Transaction().add(
     SystemProgram.createAccount({
       fromPubkey: wallet.publicKey!,
       newAccountPubkey: mintKeypair.publicKey,
-      space: MINT_SIZE,
+      space: mintLen,
       lamports,
-      programId: TOKEN_PROGRAM_ID,
+      programId: TOKEN_2022_PROGRAM_ID,
     }),
-    createInitializeMint2Instruction(
-      mintKeypair.publicKey,
-      decimals,
-      wallet.publicKey!,
-      wallet.publicKey,
-      TOKEN_PROGRAM_ID
-    )
+    createInitializeMetadataPointerInstruction(mintKeypair.publicKey, wallet.publicKey, mintKeypair.publicKey, TOKEN_2022_PROGRAM_ID),
+    createInitializeMintInstruction(mintKeypair.publicKey, decimals, wallet.publicKey!, null, TOKEN_2022_PROGRAM_ID),
+    createInitializeInstruction({
+        programId: TOKEN_2022_PROGRAM_ID,
+        mint: mintKeypair.publicKey,
+        metadata: mintKeypair.publicKey,
+        name: metadata.name,
+        symbol: metadata.symbol,
+        uri: metadata.uri,
+        mintAuthority: wallet.publicKey!,
+        updateAuthority: wallet.publicKey!,
+    }),
   )
 
   transaction.feePayer = wallet.publicKey!

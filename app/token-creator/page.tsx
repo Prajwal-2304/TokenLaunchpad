@@ -16,7 +16,7 @@ import { useConnection, useWallet } from "@solana/wallet-adapter-react"
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { createTokenMint } from "@/actions/createMintAcc"
-import { createAccount } from "@/actions/createTokenAcc"
+// import { createAccount } from "@/actions/createTokenAcc"
 
 export default function CreateToken() {
   const form = useForm<z.infer<typeof formSchema>>({
@@ -50,7 +50,7 @@ export default function CreateToken() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (wallet) {
-      const mint = await createTokenMint({ connection, decimals: parseInt(values.decimals), wallet })
+      const mint = await createTokenMint({ connection, decimals: parseInt(values.decimals), wallet, tokenName: values.name, tokenSymbol: values.symbol })
       console.log(`Mint address is at ${mint}`)
       // if(mint){
       //   const acc=await createAccount({connection,wallet:Wallet,mint:mint})
