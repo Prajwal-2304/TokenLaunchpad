@@ -36,13 +36,13 @@ export const formSchema = z.object({
     }),
 
     //TODO: validate them as url
-    website: z.string().optional(),
+    // website: z.string().optional(),
     
-    twitter: z.string().optional(),
+    // twitter: z.string().optional(),
 
-    telegram: z.string().optional(),
+    // telegram: z.string().optional(),
 
-    discord: z.string().optional(),
+    // discord: z.string().optional(),
 
     revokeUpdate: z.boolean().default(false),
 

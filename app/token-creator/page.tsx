@@ -16,6 +16,7 @@ import { useConnection, useWallet } from "@solana/wallet-adapter-react"
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { createTokenMint } from "@/actions/createMintAcc"
+import { HandleFileUpload } from "@/actions/uploadFile"
 // import { createAccount } from "@/actions/createTokenAcc"
 
 export default function CreateToken() {
@@ -27,10 +28,10 @@ export default function CreateToken() {
       decimals: "6",
       initSupply: "1",
       description: "",
-      website: "",
-      twitter: "",
-      telegram: "",
-      discord: "",
+      // website: "",
+      // twitter: "",
+      // telegram: "",
+      // discord: "",
       revokeUpdate: false,
       revokeFreeze: false,
       revokeMint: false,
@@ -49,8 +50,11 @@ export default function CreateToken() {
   })
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    console.log(values)
+    const fileKey = values.img ? await HandleFileUpload(values.img) : null
+    const imgURI = `${process.env.R2_PUBLIC_URL}/token-launchpad/${fileKey}`
     if (wallet) {
-      const mint = await createTokenMint({ connection, decimals: parseInt(values.decimals), wallet, tokenName: values.name, tokenSymbol: values.symbol })
+      const mint = await createTokenMint({ connection, decimals: parseInt(values.decimals), wallet, tokenName: values.name, tokenSymbol: values.symbol, imgURI, supply: parseInt(values.initSupply) })
       console.log(`Mint address is at ${mint}`)
       // if(mint){
       //   const acc=await createAccount({connection,wallet:Wallet,mint:mint})
@@ -139,7 +143,7 @@ export default function CreateToken() {
                     <div className="border-2 border-dashed border-gray-300 dark:border-gray-800 rounded-lg p-8">
                       <Input
                         type="file"
-                        accept="image/*"
+                        accept="image/png, image/jpeg, image/jpg, image/gif"
                         onChange={(e) => {
                           const file = e.target.files?.[0];
                           if (file) {
@@ -195,7 +199,7 @@ export default function CreateToken() {
               )}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {["website", "twitter", "telegram", "discord"].map((social) => (
                 <FormField
                   key={social}
@@ -216,7 +220,7 @@ export default function CreateToken() {
                   )}
                 />
               ))}
-            </div>
+            </div> */}
 
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Revoke Authorities</h3>
@@ -257,11 +261,6 @@ export default function CreateToken() {
             </div>
 
             <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700 text-white py-6">Create Token</Button>
-            <div className="space-y-4">
-              <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-                Total Fees: <span className="text-teal-500 dark:text-teal-400">0.10 SOL</span>
-              </div>
-            </div>
           </form>
         </Form>
       </div>

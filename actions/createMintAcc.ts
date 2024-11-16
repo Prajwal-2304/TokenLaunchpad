@@ -12,12 +12,14 @@ interface Metadata {
   additionalMetadata: []
 }
 
-export async function createTokenMint({ connection, decimals, wallet, tokenName, tokenSymbol }: { 
+export async function createTokenMint({ connection, decimals, wallet, tokenName, tokenSymbol, imgURI, supply }: { 
   connection: Connection, 
   decimals: number, 
   wallet: WalletContextState,
   tokenName: string,
-  tokenSymbol: string
+  tokenSymbol: string,
+  imgURI: string,
+  supply: number
 }) {
   const mintKeypair = Keypair.generate()
 
@@ -25,7 +27,7 @@ export async function createTokenMint({ connection, decimals, wallet, tokenName,
     mint: mintKeypair.publicKey,
     name: tokenName,
     symbol: tokenSymbol,
-    uri: "",
+    uri: imgURI,
     additionalMetadata: []
   }
 
@@ -33,7 +35,6 @@ export async function createTokenMint({ connection, decimals, wallet, tokenName,
   const metadataLen = TYPE_SIZE + LENGTH_SIZE + pack(metadata).length;
 
   const lamports = await connection.getMinimumBalanceForRentExemption(mintLen + metadataLen);
-
 
   const associatedToken = getAssociatedTokenAddressSync(
     mintKeypair.publicKey,
@@ -69,7 +70,7 @@ export async function createTokenMint({ connection, decimals, wallet, tokenName,
       mintKeypair.publicKey,
       TOKEN_2022_PROGRAM_ID,
     ),
-    createMintToInstruction(mintKeypair.publicKey, associatedToken, wallet.publicKey!, 100 * 1000000, [], TOKEN_2022_PROGRAM_ID)
+    createMintToInstruction(mintKeypair.publicKey, associatedToken, wallet.publicKey!, supply * 1000000, [], TOKEN_2022_PROGRAM_ID)
   )
 
   transaction.feePayer = wallet.publicKey!
