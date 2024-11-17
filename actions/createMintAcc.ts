@@ -77,8 +77,12 @@ export async function createTokenMint({ connection, decimals, wallet, tokenName,
   transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
   transaction.partialSign(mintKeypair)
 
-  await wallet.sendTransaction(transaction, connection)
+  try{
+    await wallet.sendTransaction(transaction, connection)
   console.log(`Token mint created at ${mintKeypair.publicKey.toBase58()}`)
   console.log("ATA: ", associatedToken.toBase58())
   return mintKeypair.publicKey.toBase58()
+  }catch(err){
+    console.log("Error in transaction");
+  }
 }
