@@ -45,10 +45,10 @@ export default function CreateToken() {
   const { connected } = useWallet()
   const router = useRouter();
   const { connection } = useConnection()
-  const [isMintAvailable,setMintStatus]=React.useState(false)
-  const [submitted,setSubmit]=React.useState(false)
-  const [sig,setSig]=React.useState('')
-  const addr=`https://explorer.solana.com/address/${sig}?cluster=devnet`
+  const [isMintAvailable, setMintStatus] = React.useState(false)
+  const [submitted, setSubmit] = React.useState(false)
+  const [sig, setSig] = React.useState('')
+  const addr = `https://explorer.solana.com/address/${sig}?cluster=devnet`
 
   useEffect(() => {
     if (!connected || !wallet) {
@@ -57,16 +57,16 @@ export default function CreateToken() {
   })
 
 
-  
-  function loadIcon(){
+
+  function loadIcon() {
     setSubmit(true)
   }
-  function setFalse(){
+  function setFalse() {
     setMintStatus(false)
     setSig('')
   }
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    if(isMintAvailable){
+    if (isMintAvailable) {
       setFalse()
     }
     console.log(values)
@@ -74,27 +74,27 @@ export default function CreateToken() {
     const fileKey = values.img ? await HandleFileUpload(values.img) : null
     const imgURL = `${process.env.R2_PUBLIC_URL}/token-launchpad/${fileKey}`
     if (wallet) {
-      const mint = await createTokenMint({ connection, decimals: parseInt(values.decimals), wallet, tokenName: values.name, tokenSymbol: values.symbol, imgURL, supply: parseInt(values.initSupply) })
+      const mint = await createTokenMint({ connection, decimals: parseInt(values.decimals), wallet, description: values.description, tokenName: values.name, tokenSymbol: values.symbol, imgURL, supply: parseInt(values.initSupply) })
       console.log(`Mint address is at ${mint}`)
-      
-      if(mint){
+
+      if (mint) {
         setSig(mint)
         setMintStatus(true)
-        console.log(`Mint address is at ${mint}`)  
-      }else{
+        console.log(`Mint address is at ${mint}`)
+      } else {
         setSubmit(false)
-       
+
       }
     }
   }
-  if(!isMintAvailable&&submitted){
+  if (!isMintAvailable && submitted) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     )
   }
-  else{
+  else {
     return (
       <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white p-8 transition-colors duration-200">
         <div className="max-w-3xl mx-auto space-y-8">
@@ -104,7 +104,7 @@ export default function CreateToken() {
               Easily Create your own Solana SPL Token in just 7+1 steps without Coding.
             </p>
           </div>
-  
+
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -135,7 +135,7 @@ export default function CreateToken() {
                   )}
                 />
               </div>
-  
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -164,7 +164,7 @@ export default function CreateToken() {
                   )}
                 />
               </div>
-  
+
               <FormField
                 control={form.control}
                 name="img"
@@ -194,7 +194,7 @@ export default function CreateToken() {
                     </FormControl>
                     <FormDescription>Most meme coins use a squared 1000x1000 logo</FormDescription>
                     <FormMessage />
-  
+
                     {value && (
                       <div className="mt-4 relative flex justify-center items-center" style={{ height: '100%', width: '100%' }}>
                         <div className="relative" style={{ width: '100%', height: 'auto', maxWidth: '300px' }}>
@@ -211,8 +211,8 @@ export default function CreateToken() {
                   </FormItem>
                 )}
               />
-  
-  
+
+
               <FormField
                 control={form.control}
                 name="description"
@@ -230,7 +230,7 @@ export default function CreateToken() {
                   </FormItem>
                 )}
               />
-  
+
               {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {["website", "twitter", "telegram", "discord"].map((social) => (
                   <FormField
@@ -253,14 +253,14 @@ export default function CreateToken() {
                   />
                 ))}
               </div> */}
-  
+
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Revoke Authorities</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   Solana Token have 3 authorities: Freeze Authority, Mint Authority and Update Authority. Revoke them to attract
                   more investors.
                 </p>
-  
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {[
                     { name: "revokeUpdate", label: "Revoke Update (Immutable)", description: "Update Authority allows you to update token metadata" },
@@ -293,20 +293,20 @@ export default function CreateToken() {
               </div>
               {isMintAvailable && (
                 <div className="inline-flex items-center space-x-2 text-sm font-medium text-primary hover:text-primary/80">
-                <span>The transaction can be accessed at</span>
-                <Link
-                  href={addr}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center space-x-1 underline"
-                  aria-label={`View transaction at ${addr}`}
-                >
-                  <span>{addr.slice(0, 10)}...{addr.slice(-4)}</span>
-                  <ExternalLink className="h-4 w-4" />
-                </Link>
-              </div>
+                  <span>The transaction can be accessed at</span>
+                  <Link
+                    href={addr}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center space-x-1 underline"
+                    aria-label={`View transaction at ${addr}`}
+                  >
+                    <span>{addr.slice(0, 10)}...{addr.slice(-4)}</span>
+                    <ExternalLink className="h-4 w-4" />
+                  </Link>
+                </div>
               )}
-              
+
               <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700 text-white py-6">Create Token</Button>
             </form>
           </Form>

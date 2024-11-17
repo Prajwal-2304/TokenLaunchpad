@@ -1,34 +1,28 @@
 
-import { Connection, Keypair, PublicKey, SystemProgram, Transaction  } from "@solana/web3.js"
+import { Connection, Keypair, SystemProgram, Transaction } from "@solana/web3.js"
 import { WalletContextState } from "@solana/wallet-adapter-react"
 import { createAssociatedTokenAccountInstruction, createInitializeMetadataPointerInstruction, createInitializeMintInstruction, createMintToInstruction, ExtensionType, getAssociatedTokenAddressSync, getMintLen, LENGTH_SIZE, TOKEN_2022_PROGRAM_ID, TYPE_SIZE } from "@solana/spl-token"
-import { createInitializeInstruction, pack } from '@solana/spl-token-metadata';
+import { createInitializeInstruction, pack, TokenMetadata } from '@solana/spl-token-metadata';
 import { HandleJsonUpload } from "@/cloud/uploadJSON";
 
-interface Metadata {
-  mint: PublicKey,
-  name: string,
-  symbol: string,
-  uri: string,
-  additionalMetadata: []
-}
 
-export async function createTokenMint({ connection, decimals, wallet, tokenName, tokenSymbol, imgURL, supply }: { 
-  connection: Connection, 
-  decimals: number, 
+export async function createTokenMint({ connection, decimals, wallet, tokenName, tokenSymbol, imgURL, supply, description }: {
+  connection: Connection,
+  decimals: number,
   wallet: WalletContextState,
   tokenName: string,
   tokenSymbol: string,
   imgURL: string,
-  supply: number
+  supply: number,
+  description: string
 }) {
   const mintKeypair = Keypair.generate()
 
   const metadataJSON = {
     name: tokenName,
     symbol: tokenSymbol,
+    description,
     image: imgURL,
-    externa_url: "",
     attributes: []
   }
 
@@ -37,7 +31,7 @@ export async function createTokenMint({ connection, decimals, wallet, tokenName,
 
   console.log(metaDataJSONUrl)
 
-  const metadata: Metadata = {
+  const metadata: TokenMetadata = {
     mint: mintKeypair.publicKey,
     name: tokenName,
     symbol: tokenSymbol,
@@ -56,7 +50,7 @@ export async function createTokenMint({ connection, decimals, wallet, tokenName,
     false,
     TOKEN_2022_PROGRAM_ID,
   );
-  
+
   const transaction = new Transaction().add(
     SystemProgram.createAccount({
       fromPubkey: wallet.publicKey!,
@@ -68,14 +62,14 @@ export async function createTokenMint({ connection, decimals, wallet, tokenName,
     createInitializeMetadataPointerInstruction(mintKeypair.publicKey, wallet.publicKey, mintKeypair.publicKey, TOKEN_2022_PROGRAM_ID),
     createInitializeMintInstruction(mintKeypair.publicKey, decimals, wallet.publicKey!, null, TOKEN_2022_PROGRAM_ID),
     createInitializeInstruction({
-        programId: TOKEN_2022_PROGRAM_ID,
-        mint: mintKeypair.publicKey,
-        metadata: mintKeypair.publicKey,
-        name: metadata.name,
-        symbol: metadata.symbol,
-        uri: metadata.uri,
-        mintAuthority: wallet.publicKey!,
-        updateAuthority: wallet.publicKey!,
+      programId: TOKEN_2022_PROGRAM_ID,
+      mint: mintKeypair.publicKey,
+      metadata: mintKeypair.publicKey,
+      name: metadata.name,
+      symbol: metadata.symbol,
+      uri: metadata.uri,
+      mintAuthority: wallet.publicKey!,
+      updateAuthority: wallet.publicKey!,
     }),
     createAssociatedTokenAccountInstruction(
       wallet.publicKey!,
@@ -96,7 +90,7 @@ export async function createTokenMint({ connection, decimals, wallet, tokenName,
     console.log(`Token mint created at ${mintKeypair.publicKey.toBase58()}`)
     console.log("ATA: ", associatedToken.toBase58())
     return mintKeypair.publicKey.toBase58()
-  } catch(err){
+  } catch (err) {
     console.log("Error in transaction");
     console.log(err)
   }
