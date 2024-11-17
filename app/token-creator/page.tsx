@@ -73,7 +73,7 @@ export default function CreateToken() {
     console.log(values)
     loadIcon()
     const fileKey = values.img ? await HandleFileUpload(values.img) : null
-    const imgURI = `https://pub-253bb7c0bdcb44a8807092567ec0b66f.r2.dev/token-launchpad/${fileKey}`
+    const imgURI = `${process.env.R2_ENDPOINT}/${fileKey}`
     if (wallet) {
       const mint = await createTokenMint({ connection, decimals: parseInt(values.decimals), wallet, tokenName: values.name, tokenSymbol: values.symbol, imgURI, supply: parseInt(values.initSupply) })
       
@@ -83,7 +83,7 @@ export default function CreateToken() {
         console.log(`Mint address is at ${mint}`)  
       }else{
         setSubmit(false)
-        setError(mint)
+       
       }
     }
   }
