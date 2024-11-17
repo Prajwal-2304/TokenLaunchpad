@@ -18,6 +18,7 @@ export const formSchema = z.object({
 
     initSupply: z.string().refine((value) => {
       const num = Number(value);
+      console.log(num)
       return Number.isInteger(num) && num >= 1;
     }, {
       message: "Initial supply of tokens should be at least 1.",

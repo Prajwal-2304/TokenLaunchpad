@@ -56,10 +56,6 @@ export default function CreateToken() {
     if (wallet) {
       const mint = await createTokenMint({ connection, decimals: parseInt(values.decimals), wallet, tokenName: values.name, tokenSymbol: values.symbol, imgURI, supply: parseInt(values.initSupply) })
       console.log(`Mint address is at ${mint}`)
-      // if(mint){
-      //   const acc=await createAccount({connection,wallet:Wallet,mint:mint})
-      //   console.log(`The token can be found at address ${acc}`)
-      // }
     }
   }
 
