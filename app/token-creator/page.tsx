@@ -16,10 +16,9 @@ import { useConnection, useWallet } from "@solana/wallet-adapter-react"
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { createTokenMint } from "@/actions/createMintAcc"
-import { HandleFileUpload } from "@/actions/uploadFile"
-import { Loader2,ExternalLink,AlertCircle } from "lucide-react"
+import { Loader2, ExternalLink } from "lucide-react"
 import Link from "next/link"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { HandleFileUpload } from "@/cloud/uploadFile"
 
 // import { createAccount } from "@/actions/createTokenAcc"
 
@@ -73,9 +72,9 @@ export default function CreateToken() {
     console.log(values)
     loadIcon()
     const fileKey = values.img ? await HandleFileUpload(values.img) : null
-    const imgURI = `${process.env.R2_ENDPOINT}/${fileKey}`
+    const imgURL = `${process.env.R2_PUBLIC_URL}/token-launchpad/${fileKey}`
     if (wallet) {
-      const mint = await createTokenMint({ connection, decimals: parseInt(values.decimals), wallet, tokenName: values.name, tokenSymbol: values.symbol, imgURI, supply: parseInt(values.initSupply) })
+      const mint = await createTokenMint({ connection, decimals: parseInt(values.decimals), wallet, tokenName: values.name, tokenSymbol: values.symbol, imgURL, supply: parseInt(values.initSupply) })
       console.log(`Mint address is at ${mint}`)
       
       if(mint){

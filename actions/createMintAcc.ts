@@ -3,6 +3,7 @@ import { Connection, Keypair, PublicKey, SystemProgram, Transaction  } from "@so
 import { WalletContextState } from "@solana/wallet-adapter-react"
 import { createAssociatedTokenAccountInstruction, createInitializeMetadataPointerInstruction, createInitializeMintInstruction, createMintToInstruction, ExtensionType, getAssociatedTokenAddressSync, getMintLen, LENGTH_SIZE, TOKEN_2022_PROGRAM_ID, TYPE_SIZE } from "@solana/spl-token"
 import { createInitializeInstruction, pack } from '@solana/spl-token-metadata';
+import { HandleJsonUpload } from "@/cloud/uploadJSON";
 
 interface Metadata {
   mint: PublicKey,
@@ -12,22 +13,35 @@ interface Metadata {
   additionalMetadata: []
 }
 
-export async function createTokenMint({ connection, decimals, wallet, tokenName, tokenSymbol, imgURI, supply }: { 
+export async function createTokenMint({ connection, decimals, wallet, tokenName, tokenSymbol, imgURL, supply }: { 
   connection: Connection, 
   decimals: number, 
   wallet: WalletContextState,
   tokenName: string,
   tokenSymbol: string,
-  imgURI: string,
+  imgURL: string,
   supply: number
 }) {
   const mintKeypair = Keypair.generate()
+
+  const metadataJSON = {
+    name: tokenName,
+    symbol: tokenSymbol,
+    image: imgURL,
+    externa_url: "",
+    attributes: []
+  }
+
+  const fileKey = await HandleJsonUpload(metadataJSON)
+  const metaDataJSONUrl = `${process.env.R2_PUBLIC_URL}/token-launchpad/${fileKey}`
+
+  console.log(metaDataJSONUrl)
 
   const metadata: Metadata = {
     mint: mintKeypair.publicKey,
     name: tokenName,
     symbol: tokenSymbol,
-    uri: imgURI,
+    uri: metaDataJSONUrl,
     additionalMetadata: []
   }
 

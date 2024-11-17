@@ -1,3 +1,5 @@
+"use server"
+
 import GenerateUrl from "./presignedUrl"
 
 export const HandleFileUpload = async (file: File) => {
